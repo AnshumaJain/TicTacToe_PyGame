@@ -1,5 +1,6 @@
 """
 LeetCode Problem #1510: Stone Game IV
+
 Alice and Bob take turns playing a game, with Alice starting first.
 Initially, there are n stones in a pile.  On each player's turn, that player makes
 a move consisting of removing any non-zero square number of stones in the pile.
