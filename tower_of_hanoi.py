@@ -44,4 +44,5 @@ def hanoi_recursion(n, a, b, c):
     return (a, b, c)
 
 
-print(hanoi_recursion(5, [5, 4, 3, 2, 1], [], []))
+if __name__ == "__main__":
+    print(hanoi_recursion(5, [5, 4, 3, 2, 1], [], []))
