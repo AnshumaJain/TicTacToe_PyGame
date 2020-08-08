@@ -120,7 +120,7 @@ class TicTacToe(Gui):
     def __init__(self):
         # initializing vars for win function
         Gui.__init__(self)
-        self.self.count = 0
+        self.count = 0
 
 
         # create an array for cells
