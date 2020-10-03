@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 """
 Tic-tac-toe(ttt) game graphical user interface using pygame and class inheritance.
 """
@@ -9,6 +10,36 @@ YELLOW = (255, 255, 0)
 PEACH = (255, 200, 150)
 CHOCOLATE = (210, 105, 30)
 BROWN = (165, 42, 42)
+
+CELL_CENTER_HASH_MAP = {
+    1: (90, 90),
+    2: (150, 90),
+    3: (210, 90),
+    4: (90, 150),
+    5: (150, 150),
+    6: (210, 150),
+    7: (90, 210),
+    8: (150, 210),
+    9: (210, 210)
+}
+
+X_BORDER_TO_CELL_MAP = {
+    (120, 60): {1, 4, 7},
+    (180, 120): {2, 5, 8},
+    (240, 180): {3, 6, 9}
+}
+
+Y_BORDER_TO_CELL_MAP = {
+    (60, 120): {1, 2, 3},
+    (120, 180): {4, 5, 6},
+    (180, 240): {7, 8, 9}
+}
+
+WINNING_CELL_COMBOS = {
+    (0, 1, 2), (3, 4, 5), (6, 7, 8),  # horizontal combos
+    (0, 3, 6), (1, 4, 7), (2, 5, 8),  # vertical combos
+    (0, 4, 8), (2, 4, 6),  # diagonal combos
+}
 
 
 class Gui:
@@ -27,7 +58,8 @@ class Gui:
 
         self.cell = [None] * 9  # cell array representing 9 cells of the ttt grid
         self.static_drawing()  # display the labels and the grid
-        self.game_over = 0
+        self.is_game_over = False   # Boolean to monitor if the game is over
+
 
     def static_drawing(self):
         """ display the labels, window name and the grid """
@@ -50,116 +82,72 @@ class Gui:
         self.line3 = pygame.draw.line(self.screen, CHOCOLATE, (60, 120), (240, 120), 4)  # horizontal line1
         self.line4 = pygame.draw.line(self.screen, CHOCOLATE, (60, 180), (240, 180), 4)  # horizontal line2
 
+
     def display_symbol(self, symbol, cell_num):
+        x, y = CELL_CENTER_HASH_MAP[cell_num]
+        if not self.is_game_over:
+            text = self.font.render(symbol, True, BROWN)
+            text_rect = text.get_rect()
+            text_rect.center = (x, y)
+            self.screen.blit(text, text_rect)
 
-        if cell_num == 1:
-            x, y = 90, 90
 
-        elif cell_num == 2:
-            x, y = 150, 90
+    def display_win_message(self, win_message):
+        text = self.font.render(win_message, True, BROWN, YELLOW)  # O wins text
+        text_rect = text.get_rect()
+        text_rect.center = (150, 270)
+        self.screen.blit(text, text_rect)
 
-        elif cell_num == 3:
-            x, y = 210, 90
 
-        elif cell_num == 4:
-            x, y = 90, 150
-
-        elif cell_num == 5:
-            x, y = 150, 150
-
-        elif cell_num == 6:
-            x, y = 210, 150
-
-        elif cell_num == 7:
-            x, y = 90, 210
-
-        elif cell_num == 8:
-            x, y = 150, 210
-
-        elif cell_num == 9:
-            x, y = 210, 210
-
-        if self.game_over == 0:
-            # for  O
-            if symbol == 'O':
-                text3 = self.font.render('O', True, BROWN)  # O
-                text_rect3 = text3.get_rect()
-                text_rect3.center = (x, y)
-                self.screen.blit(text3, text_rect3)
-
-            # for  X
-            elif symbol == 'X':
-                text4 = self.font.render('X', True, BROWN)  # X
-                text_rect4 = text4.get_rect()
-                text_rect4.center = (x, y)
-                self.screen.blit(text4, text_rect4)
-
-    def display_result(self, win):
-
+    def display_game_result(self, win):
         if win == 1:
-            text5 = self.font.render('Player 1 Wins !', True, BROWN, YELLOW)  # O wins text
-            text_rect5 = text5.get_rect()
-            text_rect5.center = (150, 270)
-            self.screen.blit(text5, text_rect5)
-
+            self.display_win_message('Player 1 Wins !')
         elif win == 2:
-            text6 = self.font.render('Player 2 Wins !', True, BROWN, YELLOW)  # x wins text
-            text_rect6 = text6.get_rect()
-            text_rect6.center = (150, 270)
-            self.screen.blit(text6, text_rect6)
-
+            self.display_win_message('Player 2 Wins !')
         elif win == 3:
-            text7 = self.font.render("It's a Tie !", True, BROWN, YELLOW)  # tie text
-            text_rect7 = text7.get_rect()
-            text_rect7.center = (150, 270)
-            self.screen.blit(text7, text_rect7)
+            self.display_win_message("It's a Tie !")
 
 
 class TicTacToe(Gui):
 
     def __init__(self):
-        # initializing vars for win function
         Gui.__init__(self)
-        self.count = 0
+        self.count = 0      # variable to count the turns
 
 
-        # create an array for cells
+    def cell_click_update(self, symbol , cell_no):
+        if self.cell[cell_no - 1] is None:
+            self.display_symbol(symbol, cell_no)
+            self.count += 1
+            self.cell[cell_no - 1] = symbol
 
-    # self.counter that keeps track of the current cell
-    # conditions for each cell index
+
+    def check_player_turn(self, cell_no):
+        if self.count % 2 == 0:
+            self.cell_click_update('O', cell_no)
+        else:
+            self.cell_click_update('X', cell_no)
+
 
     def check_win(self):
 
-        if ([self.cell[0], self.cell[1], self.cell[2]] == ['O'] * 3 or
-                [self.cell[3], self.cell[4], self.cell[5]] == ['O'] * 3 or
-                [self.cell[6], self.cell[7], self.cell[8]] == ['O'] * 3 or
-                [self.cell[0], self.cell[3], self.cell[6]] == ['O'] * 3 or
-                [self.cell[1], self.cell[4], self.cell[7]] == ['O'] * 3 or
-                [self.cell[2], self.cell[5], self.cell[8]] == ['O'] * 3 or
-                [self.cell[0], self.cell[4], self.cell[8]] == ['O'] * 3 or
-                [self.cell[2], self.cell[4], self.cell[6]] == ['O'] * 3):
+        for i,j,k in WINNING_CELL_COMBOS:
+            if [self.cell[i], self.cell[j], self.cell[k]] == ['O']*3:
+                if not self.is_game_over:               # if the game is not over yet
+                    self.display_game_result(1)         # display player 'O' win result
+                    self.is_game_over = True
+                    break
+            elif [self.cell[i], self.cell[j], self.cell[k]] == ['X']*3:
+                if not self.is_game_over:               # if the game is not over yet
+                    self.display_game_result(2)         # display player 'X' win result
+                    self.is_game_over = True
+                    break
 
-            if self.game_over == 0:
-                self.display_result(1)
-                self.game_over +=1
+        if self.count == 9:                             # check if all 9 turns are over
+            if not self.is_game_over:                   # if no one won the game yet
+                self.display_game_result(3)             # display tie result
+                self.is_game_over = True
 
-        elif ([self.cell[0], self.cell[1], self.cell[2]] == ['X'] * 3 or
-              [self.cell[3], self.cell[4], self.cell[5]] == ['X'] * 3 or
-              [self.cell[6], self.cell[7], self.cell[8]] == ['X'] * 3 or
-              [self.cell[0], self.cell[3], self.cell[6]] == ['X'] * 3 or
-              [self.cell[1], self.cell[4], self.cell[7]] == ['X'] * 3 or
-              [self.cell[2], self.cell[5], self.cell[8]] == ['X'] * 3 or
-              [self.cell[0], self.cell[4], self.cell[8]] == ['X'] * 3 or
-              [self.cell[2], self.cell[4], self.cell[6]] == ['X'] * 3):
-            if self.game_over == 0:
-                self.display_result(2)
-                self.game_over += 1
-
-        else:
-            if self.count == 9:
-                if self.game_over == 0:
-                    self.display_result(3)
-                    self.game_over += 1
 
     def get_click_pos(self):
 
@@ -168,135 +156,25 @@ class TicTacToe(Gui):
                 if event.type == pygame.MOUSEBUTTONUP:
                     pos = pygame.mouse.get_pos()  # if mouse is pressed get position of cursor ##
 
-                    if 120 > pos[0] > 60 and 60 < pos[1] < 120:  # 1
-                        if self.count % 2 == 0:
-                            if self.cell[0] is None:
-                                self.display_symbol('O', 1)
-                                self.count += 1
-                                self.cell[0] = 'O'
+                    possible_cells_x = set()
+                    possible_cells_y = set()
+                    for x1,x2 in X_BORDER_TO_CELL_MAP.keys():
+                        if x1 > pos[0] > x2:
+                            possible_cells_x = X_BORDER_TO_CELL_MAP[(x1,x2)]
 
-                        else:
-                            if self.cell[0] is None:
-                                self.display_symbol('X', 1)
-                                self.count += 1
-                                self.cell[0] = 'X'
+                    for y1,y2 in Y_BORDER_TO_CELL_MAP.keys():
+                        if y1 < pos[1] < y2:
+                            possible_cells_y = Y_BORDER_TO_CELL_MAP[(y1,y2)]
 
+                    current_cell = possible_cells_x & possible_cells_y
 
-                    elif 180 > pos[0] > 120 and 60 < pos[1] < 120:  # 2
-                        if self.count % 2 == 0:
-                            if self.cell[1] is None:
-                                self.display_symbol('O', 2)
-                                self.count += 1
-                                self.cell[1] = 'O'
+                    if current_cell: # if the user didn't click outside the designated area
+                        self.check_player_turn(current_cell.pop())
+                        self.check_win()
 
-                        else:
-                            if self.cell[1] is None:
-                                self.display_symbol('X', 2)
-                                self.count += 1
-                                self.cell[1] = 'X'
-
-
-                    elif 240 > pos[0] > 180 and 60 < pos[1] < 120:  # 3
-                        if self.count % 2 == 0:
-                            if self.cell[2] is None:
-                                self.display_symbol('O', 3)
-                                self.count += 1
-                                self.cell[2] = 'O'
-
-                        else:
-                            if self.cell[2] is None:
-                                self.display_symbol('X', 3)
-                                self.count += 1
-                                self.cell[2] = 'X'
-
-
-                    elif 120 > pos[0] > 60 and 120 < pos[1] < 180:  # 4
-                        if self.count % 2 == 0:
-                            if self.cell[3] is None:
-                                self.display_symbol('O', 4)
-                                self.count += 1
-                                self.cell[3] = 'O'
-
-                        else:
-                            if self.cell[3] is None:
-                                self.display_symbol('X', 4)
-                                self.count += 1
-                                self.cell[3] = 'X'
-
-                    elif 180 > pos[0] > 120 and 120 < pos[1] < 180:  # 5
-                        if self.count % 2 == 0:
-                            if self.cell[4] is None:
-                                self.display_symbol('O', 5)
-                                self.count += 1
-                                self.cell[4] = 'O'
-
-                        else:
-                            if self.cell[4] is None:
-                                self.display_symbol('X', 5)
-                                self.count += 1
-                                self.cell[4] = 'X'
-
-                    elif 240 > pos[0] > 180 and 120 < pos[1] < 180:  # 6
-                        if self.count % 2 == 0:
-                            if self.cell[5] is None:
-                                self.display_symbol('O', 6)
-                                self.count += 1
-                                self.cell[5] = 'O'
-
-                        else:
-                            if self.cell[5] is None:
-                                self.display_symbol('X', 6)
-                                self.count += 1
-                                self.cell[5] = 'X'
-
-
-                    elif 120 > pos[0] > 60 and 180 < pos[1] < 240:  # 7
-                        if self.count % 2 == 0:
-                            if self.cell[6] is None:
-                                self.display_symbol('O', 7)
-                                self.count += 1
-                                self.cell[6] = 'O'
-
-                        else:
-                            if self.cell[6] is None:
-                                self.display_symbol('X', 7)
-                                self.count += 1
-                                self.cell[6] = 'X'
-
-
-                    elif 180 > pos[0] > 120 and 180 < pos[1] < 240:  # 8
-                        if self.count % 2 == 0:
-                            if self.cell[7] is None:
-                                self.display_symbol('O', 8)
-                                self.count += 1
-                                self.cell[7] = 'O'
-
-                        else:
-                            if self.cell[7] is None:
-                                self.display_symbol('X', 8)
-                                self.count += 1
-                                self.cell[7] = 'X'
-
-
-                    elif 240 > pos[0] > 180 and 180 < pos[1] < 240:  # 9
-                        if self.count % 2 == 0:
-                            if self.cell[8] is None:
-                                self.display_symbol('O', 9)
-                                self.count += 1
-                                self.cell[8] = 'O'
-
-                        else:
-                            if self.cell[8] is None:
-                                self.display_symbol('X', 9)
-                                self.count += 1
-                                self.cell[8] = 'X'
-
-                    self.check_win()
                 if event.type == pygame.QUIT:
-                    # quitting pygame
-                    pygame.quit()
-                    # Time to quit
-                    quit()
+                    pygame.quit()                                       # quitting pygame
+                    quit()                                              # time to quit
 
             # Flip the display
             # pygame.display.flip()
