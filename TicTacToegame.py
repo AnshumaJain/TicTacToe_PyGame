@@ -60,6 +60,7 @@ class Gui:
         self.static_drawing()  # display the labels and the grid
         self.is_game_over = False  # Boolean to monitor if the game is over
 
+
     def static_drawing(self):
         """ display the labels, window name and the grid """
 
@@ -70,6 +71,12 @@ class Gui:
         pygame.draw.line(self.screen, LINE_COLOR, (180, 60), (180, 240), 5)  # vertical line2
         pygame.draw.line(self.screen, LINE_COLOR, (60, 120), (240, 120), 5)  # horizontal line1
         pygame.draw.line(self.screen, LINE_COLOR, (60, 180), (240, 180), 5)  # horizontal line2
+
+        # start turn instruction
+        text1 = self.font.render(" O Turn ", True, O_COLOR, BG_SCREEN_COLOR)  # O label
+        text_rect1 = text1.get_rect()
+        text_rect1.center = (150, 25)
+        self.screen.blit(text1, text_rect1)
 
 
     def display_symbol(self, symbol, cell_num, color):
@@ -86,7 +93,7 @@ class Gui:
                 text_rect2.center = (150, 25)
                 self.screen.blit(text2, text_rect2)
             else:
-                text1 = self.font.render(' O Turn ', True, O_COLOR, BG_SCREEN_COLOR)  # O label
+                text1 = self.font.render(" O Turn ", True, O_COLOR, BG_SCREEN_COLOR)  # O label
                 text_rect1 = text1.get_rect()
                 text_rect1.center = (150, 25)
                 self.screen.blit(text1, text_rect1)
@@ -123,19 +130,22 @@ class TicTacToe(Gui):
 
     def __init__(self):
         Gui.__init__(self)
-        self.count = 0  # variable to count the turns
+        self.turn = 0  # variable to turn the turns
+
 
     def cell_click_update(self, symbol, cell_no, color):
         if self.cell[cell_no - 1] is None:
             self.display_symbol(symbol, cell_no, color)
-            self.count += 1
+            self.turn += 1
             self.cell[cell_no - 1] = symbol
 
+
     def check_player_turn(self, cell_no):
-        if self.count % 2 == 0:
+        if self.turn % 2 == 0:
             self.cell_click_update('O', cell_no, O_COLOR)
         else:
             self.cell_click_update('X', cell_no, X_COLOR)
+
 
     def check_win(self):
 
@@ -151,33 +161,36 @@ class TicTacToe(Gui):
                     self.is_game_over = True
                     break
 
-        if self.count == 9:  # check if all 9 turns are over
+        if self.turn == 9:  # check if all 9 turns are over
             if not self.is_game_over:  # if no one won the game yet
                 self.display_game_result(3)  # display tie result
                 self.is_game_over = True
 
+
+    def process_mouse_click(self, pos):
+        possible_cells_x = set()
+        possible_cells_y = set()
+        for x1, x2 in X_BORDER_TO_CELL_MAP.keys():
+            if x1 > pos[0] > x2:
+                possible_cells_x = X_BORDER_TO_CELL_MAP[(x1, x2)]
+        for y1, y2 in Y_BORDER_TO_CELL_MAP.keys():
+            if y1 < pos[1] < y2:
+                possible_cells_y = Y_BORDER_TO_CELL_MAP[(y1, y2)]
+        current_cell = possible_cells_x & possible_cells_y
+        if current_cell:  # if the user didn't click outside the designated area
+            self.check_player_turn(current_cell.pop())
+            self.check_win()
+
+
     def get_click_pos(self):
 
         while 1:
+
+            pos = pygame.mouse.get_pos()  # if mouse is pressed get position of cursor
+
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONUP:
-                    pos = pygame.mouse.get_pos()  # if mouse is pressed get position of cursor ##
-
-                    possible_cells_x = set()
-                    possible_cells_y = set()
-                    for x1, x2 in X_BORDER_TO_CELL_MAP.keys():
-                        if x1 > pos[0] > x2:
-                            possible_cells_x = X_BORDER_TO_CELL_MAP[(x1, x2)]
-
-                    for y1, y2 in Y_BORDER_TO_CELL_MAP.keys():
-                        if y1 < pos[1] < y2:
-                            possible_cells_y = Y_BORDER_TO_CELL_MAP[(y1, y2)]
-
-                    current_cell = possible_cells_x & possible_cells_y
-
-                    if current_cell:  # if the user didn't click outside the designated area
-                        self.check_player_turn(current_cell.pop())
-                        self.check_win()
+                    self.process_mouse_click(pos)
 
                 if event.type == pygame.QUIT:
                     pygame.quit()  # quitting pygame
