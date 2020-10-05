@@ -65,7 +65,6 @@ class Gui:
         self.screen.fill(BG_SCREEN_COLOR)                       # fill the background color
         self.draw_initial_grid_and_labels()                     # draw all the initial labels and the grid
 
-
     def draw_initial_grid_and_labels(self):
         """ set window title; draw the labels and the tic-tac-toe grid """
 
@@ -87,12 +86,8 @@ class Gui:
         pygame.draw.rect(self.screen, RESTART_BG_COLOR, [RESTART_BUTTON_X_START, RESTART_BUTTON_Y_START,
                                                          RESTART_BUTTON_WIDTH, RESTART_BUTTON_HEIGHT])
 
-
     def display_symbol(self, symbol, cell_num):
         """ function to draw the 'X' and 'O' symbols in the given cell no."""
-
-        x, y = CELL_CENTER_HASH_MAP[cell_num]                               # get center coordinates of the given cell no.
-
         if not self.is_game_over:                                           # if the game isn't over yet
             if symbol == 'O':
                 symbol_color = O_COLOR
@@ -102,6 +97,8 @@ class Gui:
                 symbol_color = X_COLOR
                 turn_text = self.font.render(" O Turn ", True,
                                              O_COLOR, BG_SCREEN_COLOR)      # display the next turn
+
+            x, y = CELL_CENTER_HASH_MAP[cell_num]  # get center coordinates of the given cell no.
 
             # draw the 'X' or 'O' symbol on the grid
             symbol_text = self.font.render(symbol, True, symbol_color)
@@ -114,19 +111,15 @@ class Gui:
             turn_text_rect.center = (150, 25)
             self.screen.blit(turn_text, turn_text_rect)
 
-
     def display_win_message(self, win_message, color):
         """ function to display the win message """
-
         win_text = self.font.render(win_message, True, color, BG_SCREEN_COLOR)
         win_text_rect = win_text.get_rect()
         win_text_rect.center = (150, 25)
         self.screen.blit(win_text, win_text_rect)
 
-
     def display_game_result(self, win_symbol, winning_cells=None):
         """ function to display the winning screen """
-
         if win_symbol == 'XO':                                      # if there is a tie
             self.display_win_message("X-O Draw!", OX_DRAW_COLOR)
         else:
@@ -138,11 +131,9 @@ class Gui:
                 win_message = 'X Wins!'
 
             self.display_win_message(win_message, color)
-            cord1 = CELL_CENTER_HASH_MAP[winning_cells[0] + 1]
-            cord2 = CELL_CENTER_HASH_MAP[winning_cells[1] + 1]
-            cord3 = CELL_CENTER_HASH_MAP[winning_cells[2] + 1]
-            pygame.draw.line(self.screen, color, cord1, cord2, 3)
-            pygame.draw.line(self.screen, color, cord2, cord3, 3)
+            cord_start = CELL_CENTER_HASH_MAP[winning_cells[0] + 1]
+            cord_end = CELL_CENTER_HASH_MAP[winning_cells[2] + 1]
+            pygame.draw.line(self.screen, color, cord_start, cord_end, 3)
 
 
 class TicTacToe(Gui):                               # inherited from Gui class
@@ -153,13 +144,11 @@ class TicTacToe(Gui):                               # inherited from Gui class
         self.is_game_over = False                   # boolean to monitor if the game is over
         self.cell = [None] * 9                      # cell array representing 9 cells of the tic-tac-toe grid
 
-
     def restart_game(self):
         self.turn = 0                               # reset the turns
         self.is_game_over = False                   # reset game_over boolean
         self.cell = [None] * 9                      # reinitialize the tic-tac-toe cell array
         super().__init__()                          # call parent class constructor to redraw the GUI
-
 
     def process_player_turn(self, cell_no):
         """ function to process the turn """
@@ -173,10 +162,8 @@ class TicTacToe(Gui):                               # inherited from Gui class
             self.turn += 1
             self.cell[cell_no - 1] = symbol
 
-
     def check_win(self):
         """ function to check if anyone has won yet or if there is a tie"""
-
         for i, j, k in WINNING_CELL_COMBOS:                                 # loop thru the valid winning cell combos
             if [self.cell[i], self.cell[j], self.cell[k]] == ['O'] * 3:     # if winning combo found for 'O'
                 if not self.is_game_over:                                   # if the game is not over yet
@@ -193,7 +180,6 @@ class TicTacToe(Gui):                               # inherited from Gui class
             if not self.is_game_over:                                       # if no one won the game yet
                 self.display_game_result('XO')                              # display the tie result
                 self.is_game_over = True                                    # declare game_over
-
 
     def process_mouse_click(self, pos):
         """ method to process any mouse clicks """
@@ -217,10 +203,8 @@ class TicTacToe(Gui):                               # inherited from Gui class
                 self.process_player_turn(current_cell.pop())            # process the current turn
                 self.check_win()                                        # check if anyone has won
 
-
     def start_game(self):
         """ entry point into the game after init"""
-
         while 1:                                                        # keep the game running until quit() is invoked
             pos = pygame.mouse.get_pos()                                # get current cursor position
 
